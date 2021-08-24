@@ -1,0 +1,12 @@
+[package]
+name = "lua-json5"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pest = "2.1"
+pest_derive = "2.1"
+mlua = {version = "*", features = ["luajit", "vendored", "module", "macros"]}
