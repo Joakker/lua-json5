@@ -10,3 +10,15 @@ crate-type = ["cdylib"]
 pest = "2.1"
 pest_derive = "2.1"
 mlua = {version = "*", features = ["luajit", "vendored", "module", "macros"]}
+
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-undefined",
+    "-C", "link-arg=dynamic_lookup",
+]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-undefined",
+    "-C", "link-arg=dynamic_lookup",
+]
