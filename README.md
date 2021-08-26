@@ -17,8 +17,8 @@ local data = [[
     ecma_identifier: 'works like a charm',
     "string keys": [1,2,3], // trailing comma
 }
-local parsed_data = parse(data)
 ]]
+local parsed_data = parse(data)
 ```
 
 ## Use with neovim
