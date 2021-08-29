@@ -1,6 +1,7 @@
 use mlua::{Error::ExternalError, Lua, Result, ToLua, Value as LuaValue};
 use pest::iterators::Pair;
 use pest::Parser;
+use std::char;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -10,12 +11,32 @@ use crate::val::Value;
 #[grammar = "json5.pest"]
 struct Json5Parser;
 
+// TODO(Joakker): Make this return a Result<String> instead of a naked String.
 fn parse_str(pair: Pair<Rule>) -> String {
     let mut s = String::new();
     for c in pair.into_inner() {
         match c.as_rule() {
             Rule::char_literal => s.push_str(c.as_str()),
             Rule::nul_escape_sequence => s.push_str("\u{0000}"),
+            Rule::char_escape_sequence => s.push_str(match c.as_str() {
+                "n" => "\n",
+                "r" => "\r",
+                "t" => "\t",
+                "b" => "\u{0008}",
+                "v" => "\u{000B}",
+                "f" => "\u{000C}",
+                k => k,
+            }),
+            Rule::hex_escape_sequence => {
+                let hex = match c.as_str().parse() {
+                    Ok(n) => n,
+                    Err(_) => 0,
+                };
+                if let Some(c) = char::from_u32(hex) {
+                    s.push(c)
+                }
+            }
+            Rule::unicode_escape_sequence => todo!(),
             _ => unreachable!(),
         }
     }
