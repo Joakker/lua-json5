@@ -4,6 +4,27 @@ This crate provides json5 deserialization for luajit.
 
 Inspired and adapted from [json5-rs](https://github.com/callum-oakley/json5-rs)
 
+**NOTE**: When compiling for macos, please add this to your `$CARGO_HOME/config`
+per [this article](https://blog.kdheepak.com/loading-a-rust-library-as-a-lua-module-in-neovim.html)
+(which also inspired this project):
+
+```TOML
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-undefined",
+    "-C", "link-arg=dynamic_lookup",
+]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-undefined",
+    "-C", "link-arg=dynamic_lookup",
+]
+```
+
+Also, if you haven't already, add ';?.dylib' to your `package.cpath` so it will
+be recognized by the interpreter.
+
 ## Usage
 
 You can simply require the module in your scripts and parse a string using the
