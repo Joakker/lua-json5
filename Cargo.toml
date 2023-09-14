@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 [dependencies]
 pest = "2.1"
 pest_derive = "2.1"
-mlua = {version = "*", features = ["luajit", "vendored", "module", "macros"]}
+mlua = {version = "0.9", features = ["luajit", "module", "macros"]}
