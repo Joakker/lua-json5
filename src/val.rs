@@ -1,4 +1,4 @@
-use mlua::{Lua, Nil, Result, ToLua, Value as LuaValue};
+use mlua::{Lua, Nil, Result, IntoLua, Value as LuaValue};
 use std::collections::HashMap;
 
 pub enum Value {
@@ -10,15 +10,15 @@ pub enum Value {
     Boolean(bool),
 }
 
-impl<'lua> ToLua<'lua> for Value {
-    fn to_lua(self, lua: &'lua Lua) -> Result<LuaValue<'lua>> {
+impl<'lua> IntoLua<'lua> for Value {
+    fn into_lua(self, lua: &'lua Lua) -> Result<LuaValue<'lua>> {
         match self {
             Self::Null => Ok(Nil),
-            Self::Array(a) => a.to_lua(lua),
-            Self::String(s) => s.to_lua(lua),
-            Self::Number(n) => n.to_lua(lua),
-            Self::Boolean(b) => b.to_lua(lua),
-            Self::Object(o) => o.to_lua(lua),
+            Self::Array(a) => a.into_lua(lua),
+            Self::String(s) => s.into_lua(lua),
+            Self::Number(n) => n.into_lua(lua),
+            Self::Boolean(b) => b.into_lua(lua),
+            Self::Object(o) => o.into_lua(lua),
         }
     }
 }

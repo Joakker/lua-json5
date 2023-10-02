@@ -1,4 +1,4 @@
-use mlua::{Error::ExternalError, Lua, Result, ToLua, Value as LuaValue};
+use mlua::{Error::ExternalError, Lua, Result, IntoLua, Value as LuaValue};
 use pest::iterators::Pair;
 use pest::Parser;
 use std::char;
@@ -79,5 +79,5 @@ pub fn parse<'lua>(lua: &'lua Lua, data: String) -> Result<LuaValue<'lua>> {
         Ok(mut data) => data.next().unwrap(),
         Err(err) => return Err(ExternalError(Arc::new(err))),
     };
-    Ok(parse_pair(data).to_lua(lua)?)
+    Ok(parse_pair(data).into_lua(lua)?)
 }
