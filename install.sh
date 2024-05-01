@@ -8,6 +8,8 @@ case $OSTYPE in
 	strip lua/json5.so
 	;;
 "darwin"*)
-	mv ./target/release/liblua_json5.dylib lua/json5.dylib
+	# Provide both just in case
+	cp ./target/release/liblua_json5.dylib lua/json5.dylib
+	cp lua/json5.dylib lua/json5.so
 	;;
 esac
