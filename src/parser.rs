@@ -1,7 +1,6 @@
-use mlua::{Error::ExternalError, Lua, Result, IntoLua, Value as LuaValue};
+use mlua::{Error::ExternalError, IntoLua, Lua, Result, Value as LuaValue};
 use pest::iterators::Pair;
 use pest::Parser;
-use std::char;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -13,34 +12,62 @@ struct Json5Parser;
 
 // TODO(Joakker): Make this return a Result<String> instead of a naked String.
 fn parse_str(pair: Pair<Rule>) -> String {
-    let mut s = String::new();
-    for c in pair.into_inner() {
-        match c.as_rule() {
-            Rule::char_literal => s.push_str(c.as_str()),
-            Rule::nul_escape_sequence => s.push_str("\u{0000}"),
-            Rule::char_escape_sequence => s.push_str(match c.as_str() {
-                "n" => "\n",
-                "r" => "\r",
-                "t" => "\t",
-                "b" => "\u{0008}",
-                "v" => "\u{000B}",
-                "f" => "\u{000C}",
-                k => k,
-            }),
+    let mut buf = Vec::<u16>::with_capacity(pair.as_str().len());
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::char_literal => buf.extend(p.as_str().encode_utf16()),
+            Rule::nul_escape_sequence => buf.push(0),
+            Rule::char_escape_sequence => match p.as_str() {
+                "n" => buf.push(0xA),
+                "r" => buf.push(0xD),
+                "t" => buf.push(0x9),
+                "b" => buf.push(0x8),
+                "v" => buf.push(0xB),
+                "f" => buf.push(0xC),
+                k => buf.extend(k.encode_utf16()),
+            },
             Rule::hex_escape_sequence => {
-                let hex = match c.as_str().parse() {
-                    Ok(n) => n,
-                    Err(_) => 0,
-                };
-                if let Some(c) = char::from_u32(hex) {
-                    s.push(c)
+                let s = p.as_str();
+                let hex = u8::from_str_radix(s, 16).unwrap_or(0);
+                buf.push(hex as u16);
+            }
+            Rule::unicode_escape_sequence => {
+                if let Ok(v) = u16::from_str_radix(p.as_str(), 16) {
+                    buf.push(v)
                 }
             }
-            Rule::unicode_escape_sequence => todo!(),
             _ => unreachable!(),
         }
     }
-    s
+    String::from_utf16_lossy(&buf)
+}
+
+#[test]
+fn test_char_espace_sequence() {
+    let mut pairs = Json5Parser::parse(Rule::string, r#""\t""#).unwrap();
+    let s = parse_str(pairs.next().unwrap());
+    assert_eq!(s, "\t")
+}
+
+#[test]
+fn test_hex_espace_sequence() {
+    let mut pairs = Json5Parser::parse(Rule::string, r#""\x0A""#).unwrap();
+    let s = parse_str(pairs.next().unwrap());
+    assert_eq!(s, "\n")
+}
+
+#[test]
+fn test_unicode_espace_sequence_surrogate() {
+    let mut pairs = Json5Parser::parse(Rule::string, r#""\ud834\udd1e""#).unwrap();
+    let s = parse_str(pairs.next().unwrap());
+    assert_eq!(s, "𝄞")
+}
+
+#[test]
+fn test_unicode_espace_sequence() {
+    let mut pairs = Json5Parser::parse(Rule::string, r#""\u000a""#).unwrap();
+    let s = parse_str(pairs.next().unwrap());
+    assert_eq!(s, "\n")
 }
 
 fn parse_pair(pair: Pair<Rule>) -> Value {
