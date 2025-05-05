@@ -64,7 +64,7 @@ fn parse_pair(pair: Pair<Rule>) -> Value {
                 let value = parse_pair(inner_rule.next().unwrap());
                 (name, value)
             });
-            let mut m = HashMap::new();
+            let mut m = HashMap::with_capacity(pairs.len());
             for (k, v) in pairs {
                 m.insert(k, v);
             }
