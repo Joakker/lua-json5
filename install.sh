@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cargo build --release
+cargo build --release --target-dir ./target
 
 case $OSTYPE in
 "linux-gnu"*)
