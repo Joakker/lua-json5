@@ -1,6 +1,6 @@
 use mlua::{Error::ExternalError, IntoLua, Lua, Result, Value as LuaValue};
-use pest::iterators::Pair;
 use pest::Parser;
+use pest::iterators::Pair;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -10,7 +10,6 @@ use crate::val::Value;
 #[grammar = "json5.pest"]
 struct Json5Parser;
 
-// TODO(Joakker): Make this return a Result<String> instead of a naked String.
 fn parse_str(pair: Pair<Rule>) -> String {
     let mut buf = Vec::<u16>::with_capacity(pair.as_str().len());
     for p in pair.into_inner() {
@@ -101,7 +100,7 @@ fn parse_pair(pair: Pair<Rule>) -> Value {
     }
 }
 
-pub fn parse(lua: &Lua, data: String) -> Result<LuaValue<'_>> {
+pub fn parse(lua: &Lua, data: String) -> Result<LuaValue> {
     let data = match Json5Parser::parse(Rule::text, data.as_str()) {
         Ok(mut data) => data.next().unwrap(),
         Err(err) => return Err(ExternalError(Arc::new(err))),

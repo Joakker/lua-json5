@@ -1,12 +1,17 @@
 [package]
-name = "lua-json5"
+name    = "lua-json5"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+lua54   = ["mlua/lua54"]
+luajit  = ["mlua/luajit"]
+default = ["luajit"]
+
 [dependencies]
-pest = "2.1"
+pest        = "2.1"
 pest_derive = "2.1"
-mlua = { version = "0.9", features = ["luajit", "module", "macros"] }
+mlua        = { version = "0.10", features = ["module", "macros"] }

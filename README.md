@@ -48,6 +48,14 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim.git)
 }
 ```
 
+## Lua 5.4
+
+You can also build the library for lua 5.4 using the following command:
+
+```sh
+cargo build --no-default-features --features lua54 --release
+```
+
 ## Performance
 
 Tested on neovim using the following script:

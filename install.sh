@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cargo build --release --target-dir ./target
+cargo build --features luajit --release --target-dir ./target
 
 case $OSTYPE in
 "linux-gnu"*)
