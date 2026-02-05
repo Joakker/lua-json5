@@ -12,6 +12,6 @@ luajit  = ["mlua/luajit"]
 default = ["luajit"]
 
 [dependencies]
-pest        = "2.1"
-pest_derive = "2.1"
-mlua        = { version = "0.10", features = ["module", "macros"] }
+pest        = "2.8"
+pest_derive = "2.8"
+mlua        = { version = "0.11", features = ["module", "macros"] }
