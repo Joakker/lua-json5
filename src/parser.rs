@@ -69,12 +69,78 @@ fn test_unicode_espace_sequence() {
     assert_eq!(s, "\n")
 }
 
+fn parse_number(s: &str) -> f64 {
+    let (negative, unsigned) = match s.as_bytes()[0] {
+        b'-' => (true, &s[1..]),
+        b'+' => (false, &s[1..]),
+        _ => (false, s),
+    };
+    let value = match unsigned.get(..2) {
+        // `f64::from_str` does not read hexadecimal, so 0x1F has to be read by hand.
+        Some("0x" | "0X") => {
+            let digits = &unsigned[2..];
+            match u128::from_str_radix(digits, 16) {
+                Ok(n) => n as f64,
+                // more than 32 hex digits
+                Err(_) => digits
+                    .chars()
+                    .fold(0.0, |acc, c| acc * 16.0 + c.to_digit(16).unwrap() as f64),
+            }
+        }
+        _ => unsigned.parse().unwrap(),
+    };
+    if negative { -value } else { value }
+}
+
+#[test]
+fn test_hex_number() {
+    let cases = [
+        ("0x1F", 31.0),
+        ("0XfF", 255.0),
+        ("+0x10", 16.0),
+        ("-0xA", -10.0),
+        ("0x0", 0.0),
+        ("0xFFFFFFFFFFFFFFFF", 18446744073709551615.0),
+    ];
+    for (input, expected) in cases {
+        let mut pairs = Json5Parser::parse(Rule::text, input).unwrap();
+        match parse_pair(pairs.next().unwrap()) {
+            Value::Number(n) => assert_eq!(n, expected, "{input}"),
+            _ => panic!("{input} is not a number"),
+        }
+    }
+}
+
+#[test]
+fn test_decimal_number() {
+    let cases = [
+        ("1", 1.0),
+        ("+1.5", 1.5),
+        ("-.5", -0.5),
+        ("5.", 5.0),
+        ("1e3", 1000.0),
+        ("-Infinity", f64::NEG_INFINITY),
+    ];
+    for (input, expected) in cases {
+        let mut pairs = Json5Parser::parse(Rule::text, input).unwrap();
+        match parse_pair(pairs.next().unwrap()) {
+            Value::Number(n) => assert_eq!(n, expected, "{input}"),
+            _ => panic!("{input} is not a number"),
+        }
+    }
+    let mut pairs = Json5Parser::parse(Rule::text, "-NaN").unwrap();
+    match parse_pair(pairs.next().unwrap()) {
+        Value::Number(n) => assert!(n.is_nan()),
+        _ => panic!("-NaN is not a number"),
+    }
+}
+
 fn parse_pair(pair: Pair<Rule>) -> Value {
     match pair.as_rule() {
         Rule::array => Value::Array(pair.into_inner().map(parse_pair).collect()),
         Rule::null => Value::Null,
         Rule::string => Value::String(parse_str(pair)),
-        Rule::number => Value::Number(pair.as_str().parse().unwrap()),
+        Rule::number => Value::Number(parse_number(pair.as_str())),
         Rule::boolean => Value::Boolean(pair.as_str().parse().unwrap()),
         Rule::object => {
             let pairs = pair.into_inner().map(|pair| {
